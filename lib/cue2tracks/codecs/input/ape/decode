@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+##########################
+#
+# Input decoder tools and functions for Monkey's Audio
+#
+# -- decode APE to WAV
+#
+# Usage: decode <input APE path> <output WAV path>
+# Return: 0 if OK, >0 if ERROR
+#
+##########################
+
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=${PATH}
+
+NO_ERR=0
+E_UNK=1
+E_CANT_DECODE=2
+
+# --== VARIABLES ==--
+
+if [ -z "${onlyTest}" ]; then
+    onlyTest=0
+fi
+
+codec_TOOL="mac"
+
+[ ${onlyTest} -ne 0 ] && return
+
+FullPathIN="$1"
+FullPathOUT="$2"
+
+${codec_TOOL} "${FullPathIN}" "${FullPathOUT}" -d
+errors=$?
+
+if [ ${errors} -ne 0 ]; then
+    rm -f "${FullPathOUT}"
+    exit ${E_CANT_DECODE}
+fi
+
+exit ${NO_ERR}

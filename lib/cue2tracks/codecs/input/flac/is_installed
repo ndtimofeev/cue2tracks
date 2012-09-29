@@ -1,0 +1,32 @@
+#!/bin/sh
+#
+##########################
+#
+# Input decoder tools and functions for FLAC
+#
+##########################
+
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=${PATH}
+
+FILE=`realpath $0`              # lib/cue2tracks/codecs/input/flac
+LIB_DIR=`dirname ${FILE}`       # lib/cue2tracks/codecs/input/flac
+LIB_DIR=`dirname ${LIB_DIR}`    # lib/cue2tracks/codecs/input
+LIB_DIR=`dirname ${LIB_DIR}`    # lib/cue2tracks/codecs
+LIB_DIR=`dirname ${LIB_DIR}`    # lib/cue2tracks
+
+NO_ERR=0
+E_UNK=1
+E_CODEC_TOOL_NOT_FOUND=2
+
+# --== VARIABLES ==--
+
+codec_TOOL="flac"
+codec_PKG="flac"
+
+input_TOOL=`${LIB_DIR}/check_tool ${codec_TOOL} ${codec_PKG}`
+if [ -z "${input_TOOL}" ]; then
+    exit ${E_CODEC_TOOL_NOT_FOUND}
+fi
+echo ${input_TOOL}
+exit ${NO_ERR}

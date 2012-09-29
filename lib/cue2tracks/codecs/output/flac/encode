@@ -1,0 +1,45 @@
+#!/bin/sh
+#
+##########################
+#
+# Input encoder tools and functions for FLAC
+#
+# -- encode WAV to FLAC
+#
+# Usage: encode <input WAV path> <output FLAC path> [<compression level 1-8> = 8]
+# Return: 0 if OK, >0 if ERROR
+#
+##########################
+
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=${PATH}
+
+NO_ERR=0
+E_UNK=1
+E_CANT_ENCODE=2
+
+if [ -z "${onlyTest}" ]; then
+    onlyTest=0
+fi
+
+[ ${onlyTest} -ne 0 ] && return
+
+codec_TOOL="flac"
+
+FullPathIN="$1"
+FullPathOUT="$2"
+CompressionLevel="$3"
+
+if [ -z "${CompressionLevel}" ]; then
+    CompressionLevel=8
+fi
+
+${codec_TOOL} -${CompressionLevel} -o "${FullPathOUT}" "${FullPathIN}" 1>/dev/null 2>/dev/null
+errors=$?
+
+if [ ${errors} -ne 0 ]; then
+    rm -f "${FullPathOUT}"
+    exit ${E_CANT_ENCODE}
+fi
+
+exit ${NO_ERR}

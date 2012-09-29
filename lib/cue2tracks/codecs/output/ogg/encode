@@ -1,0 +1,56 @@
+#!/bin/sh
+#
+##########################
+#
+# Input encoder tools and functions for OGG
+#
+# -- encode WAV to OGG
+#
+# Usage: encode <input WAV path> <output OGG path> [<compression quality -1 - 10> = 10] [<compression bitrate 32 - 500 kbps> = 0]
+# Return: 0 if OK, >0 if ERROR
+#
+##########################
+
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=${PATH}
+
+NO_ERR=0
+E_UNK=1
+E_CANT_ENCODE=2
+
+if [ -z "${onlyTest}" ]; then
+    onlyTest=0
+fi
+
+[ ${onlyTest} -ne 0 ] && return
+
+codec_TOOL="oggenc"
+
+FullPathIN="$1"
+FullPathOUT="$2"
+
+CompressionQuality="$3"
+CompressionBitrate="$4"
+
+if [ -z "${CompressionQuality}" ]; then
+    CompressionQuality=10
+fi
+
+if [ -z "${CompressionBitrate}" ]; then
+    CompressionBitrate=0
+fi
+
+if [ ${CompressionBitrate} -eq 0 ]; then
+    ${codec_TOOL} -Q -q ${CompressionQuality} -o "${FullPathOUT}" "${FullPathIN}" 1>/dev/null 2>/dev/null
+    errors=$?
+else
+    ${codec_TOOL} -Q -b ${CompressionBitrate} -o "${FullPathOUT}" "${FullPathIN}" 1>/dev/null 2>/dev/null
+    errors=$?
+fi
+
+if [ ${errors} -ne 0 ]; then
+    rm -f "${FullPathOUT}"
+    exit ${E_CANT_ENCODE}
+fi
+
+exit ${NO_ERR}

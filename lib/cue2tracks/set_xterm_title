@@ -1,0 +1,16 @@
+#!/bin/sh
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=$PATH
+
+# --== ERRORS ==--
+
+NO_ERR=0
+E_UNK=1
+
+if [ ! -n "$useXTitle" ]; then
+    useXTitle=0
+fi
+
+if [ $useXTitle -ne 0 ]; then
+    echo -ne "\033]0;${NAME} v${VER} -= $1 =- \007"
+fi

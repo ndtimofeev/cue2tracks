@@ -62,6 +62,8 @@ E_CODEC_M4Ae_NOT_FOUND=41
 E_CODEC_M4Ad_NOT_FOUND=42
 E_CANT_TAG_M4A=43
 
+E_CODEC_FFMPEG_NOT_FOUND=44
+
 E_OPTERROR=65
 
 # --== VARIABLES ==--
@@ -70,8 +72,8 @@ NO_ARGS=0
 
 NAME="CUE 2 Tracks"
 DESC="Tool for spliting audio CD image to tracks with cue sheet info."
-VER="0.2.11"
-AUTHOR="Sergey (sergey.dryabzhinsky@gmail.com)"
+VER="0.2.12"
+AUTHOR="Sergey <sergey.dryabzhinsky@gmail.com>"
 
 # (tool|tag|codec)_* - set to <file> if its exists, "" otherwise
 
@@ -113,7 +115,7 @@ tool_CBP_needed=1
 tool_CP_needed=1
 tool_ST_needed=1
 tool_F_needed=1
-tool_IC_needed=0
+tool_IC_needed=1
 
 tag_APE_needed=0
 tag_FLAC_needed=0
@@ -209,8 +211,7 @@ print_error() {
 }
 
 print_message() {
-	if [[ "$1" == "-n" ]]
-	then
+	if [ "$1" = "-n" ]; then
 		[ ${quiteMode} -eq 0 ] && echo -e -n "$2"
 	else
 		[ ${quiteMode} -eq 0 ] && echo -e "$1"
@@ -222,15 +223,15 @@ checktool() {
 	tool="$1"
 	pk="$2"
 
-	print_message -n "\t${color_yellow}*${color_default} Checking for '${color_cyan}${tool}${color_default}'..." >&2
+	print_message -n "\t${color_yellow}*${color_default} Checking for '${color_cyan}${tool}${color_default}'..."
 
 	ctool=`which "${tool}" 2>/dev/null`
 	if [ ! -n "${ctool}" ]
 	then
-		print_message "\t[${color_red}failed${color_default}]! Install '${pk}'!\n" >&2
+		print_message "\t[${color_red}failed${color_default}]! Install '${pk}'!\n"
 		return ${E_TOOL_NOT_FOUND}
 	else
-		print_message "\t[${color_green}ok${color_default}]" >&2
+		print_message "\t[${color_green}ok${color_default}]"
 		echo "${ctool}"
 	fi
 }
@@ -592,7 +593,21 @@ search_dencoders() {
 	if [ ${codec_APE_needed} -eq 1 ]
 	then
 		codec_APE=`checktool mac mac`
-		[ -n "${codec_APE}" ] || return ${E_CODEC_APE_NOT_FOUND}
+		if [ ! -n "${codec_APE}" ]; then
+            if [ "${inCodec}" = "ape" ]; then
+                codec_APE=`checktool ffmpeg ffmpeg`
+    		    if [ -n "${codec_APE}" ]; then
+                    inCodec="ape_ffmpeg"
+                    codec_IN="wav"
+                    inFile2WAV=1
+    		        print_message "\tSwitching to ${color_yellow}FFMPEG${color_default}, and recode input file to ${color_yellow}WAV${color_default}..."
+                else
+                    return ${E_CODEC_FFMPEG_NOT_FOUND}
+                fi
+            else
+                return ${E_CODEC_APE_NOT_FOUND}
+            fi
+        fi
 	fi
 
 	if [ ${codec_FLAC_needed} -eq 1 ]
@@ -669,13 +684,13 @@ search_tagers() {
 		tag_MP3=`checktool id3v2 id3v2`
 		[ -n "${tag_MP3}" ] || return ${E_TAG_MP3_NOT_FOUND}
 	fi
-	
+
 	if [ ${tag_M4A_needed} -eq 1 ]
 	then
 		tag_M4A=`checktool mp4tags mpeg4ip-utils`
 		[ -n "${tag_M4A}" ] || return ${E_TAG_M4A_NOT_FOUND}
 	fi
-	
+
 	if [ ${tag_OGG_needed} -eq 1 ]
 	then
 		tag_OGG=`checktool vorbiscomment vorbis-tools`
@@ -811,34 +826,68 @@ recode_to_wav() {
 			flac -d -f -o "${FullPathOUT}" "${FullPathIN}"
 			errors=$?
 		;;
+		"flac_ffmpeg" )
+			ffmpeg -i "${FullPathIN}" "${FullPathOUT}"
+			errors=$?
+		;;
 		"ape" )
 			mac "${FullPathIN}" "${FullPathOUT}" -d
+			errors=$?
+		;;
+		"ape_ffmpeg" )
+			ffmpeg -i "${FullPathIN}" "${FullPathOUT}"
 			errors=$?
 		;;
 		"wv" )
 			wvunpack -y -o "${FullPathOUT}" "${FullPathIN}"
 			errors=$?
 		;;
+		"wv_ffmpeg" )
+			ffmpeg -i "${FullPathIN}" "${FullPathOUT}"
+			errors=$?
+		;;
 		"ofr" )
+			ffmpeg -i "${FullPathIN}" "${FullPathOUT}"
+			errors=$?
 		;;
 		"shn" )
 			shorten -x "${FullPathIN}" "${FullPathOUT}"
+			errors=$?
+		;;
+		"shn_ffmpeg" )
+			ffmpeg -i "${FullPathIN}" "${FullPathOUT}"
 			errors=$?
 		;;
 		"tta" )
 			ttaenc -d -o "${FullPathOUT}" "${FullPathIN}"
 			errors=$?
 		;;
+		"tta_ffmpeg" )
+			ffmpeg -i "${FullPathIN}" "${FullPathOUT}"
+			errors=$?
+		;;
 		"mp3" )
 			lame -S --decode "${FullPathIN}" "${FullPathOUT}"
+			errors=$?
+		;;
+		"mp3_ffmpeg" )
+			ffmpeg -i "${FullPathIN}" "${FullPathOUT}"
 			errors=$?
 		;;
 		"m4a" )
 			faad -q -o "${FullPathOUT}" "${FullPathIN}"
 			errors=$?
 		;;
+		"m4a_ffmpeg" )
+			ffmpeg -i "${FullPathIN}" "${FullPathOUT}"
+			errors=$?
+		;;
 		"ogg" )
 			oggdec -Q --decode -o "${FullPathOUT}" "${FullPathIN}"
+			errors=$?
+		;;
+		"ogg_ffmpeg" )
+			ffmpeg -i "${FullPathIN}" "${FullPathOUT}"
 			errors=$?
 		;;
 		"wav" )
@@ -920,7 +969,7 @@ split_image() {
 						then
 							print_message "${bs}${color_green}100%${color_default}"
 						else
-							print_message "" 
+							print_message ""
 						fi
 						print_message -n "Track ${color_green}${lc}${color_default}: ${spl} : ${color_yellow}${prc}${color_default}"
 						lw=${#prc}
@@ -1452,7 +1501,7 @@ then
 	then
 		inFileDir=`dirname "${inFile}"`
 		inFile=`basename "${inFile}"`
-	else	
+	else
 		print_error "File '${inFile}' not found! Setting to default path..."
 		inFile=""
 	fi

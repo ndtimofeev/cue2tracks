@@ -1,0 +1,24 @@
+#!/bin/sh
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=$PATH
+
+# --== ERRORS ==--
+
+NO_ERR=0
+E_UNK=1
+
+if [ -n "$quietMode" ]; then
+    if [ $quietMode -ne 0 ]; then
+        exit $NO_ERR
+    fi
+else
+    exit $NO_ERR
+fi
+
+if [ "$1" = "-n" ]; then
+	echo -e -n "$2" >&2
+else
+	echo -e "$1" >&2
+fi
+
+exit $NO_ERR

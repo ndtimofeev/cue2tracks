@@ -1,0 +1,174 @@
+#!/bin/sh
+#
+##########################
+#
+# Input encoder tools and functions for FFMPEG
+#
+# -- encode WAV to FLAC
+#
+# Usage: encode <input WAV path> <output FLAC path> [<compression level 1-8> = 8]
+# Return: 0 if OK, >0 if ERROR
+#
+##########################
+
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=${PATH}
+
+NO_ERR=0
+E_UNK=1
+E_CANT_ENCODE=2
+
+if [ -z "${onlyTest}" ]; then
+    onlyTest=0
+fi
+
+if [ -z "${debug}" ]; then
+    debug=1
+fi
+
+[ ${onlyTest} -ne 0 ] && return
+
+codec_TOOL="ffmpeg"
+
+FullPathIN="$1"
+FullPathOUT="$2"
+CompressionLevel="$3"
+
+if [ -z "${CompressionLevel}" ]; then
+    CompressionLevel=8
+fi
+
+######
+#
+# FLAC original
+#
+#  -0, --compression-level-0, --fast  Synonymous with -l 0 -b 1152 -r 3
+#  -1, --compression-level-1          Synonymous with -l 0 -b 1152 -M -r 3
+#  -2, --compression-level-2          Synonymous with -l 0 -b 1152 -m -r 3
+#  -3, --compression-level-3          Synonymous with -l 6 -b 4096 -r 4
+#  -4, --compression-level-4          Synonymous with -l 8 -b 4096 -M -r 4
+#  -5, --compression-level-5          Synonymous with -l 8 -b 4096 -m -r 5
+#  -6, --compression-level-6          Synonymous with -l 8 -b 4096 -m -r 6
+#  -7, --compression-level-7          Synonymous with -l 8 -b 4096 -m -e -r 6
+#  -8, --compression-level-8, --best  Synonymous with -l 12 -b 4096 -m -e -r 6
+#  -b, --blocksize=#                  Specify blocksize in samples
+#  -m, --mid-side                     Try mid-side coding for each frame
+#  -M, --adaptive-mid-side            Adaptive mid-side coding for all frames
+#  -e, --exhaustive-model-search      Do exhaustive model search (expensive!)
+#  -l, --max-lpc-order=#              Max LPC order; 0 => only fixed predictors
+#  -r, --rice-partition-order=[#,]#   Set [min,]max residual partition order
+
+######
+#
+# FFMPEG
+#
+# -lpc_coeff_precision <int>   E..A. LPC coefficient precision
+# -lpc_type          <int>   E..A. LPC algorithm
+#    none                    E..A.
+#    fixed                   E..A.
+#    levinson                E..A.
+#    cholesky                E..A.
+# -lpc_passes        <int>   E..A. Number of passes to use for Cholesky factorization during LPC analysis
+# -min_partition_order <int>   E..A.
+# -max_partition_order <int>   E..A.
+# -prediction_order_method <int>   E..A. Search method for selecting prediction order
+#    estimation              E..A.
+#    2level                  E..A.
+#    4level                  E..A.
+#    8level                  E..A.
+#    search                  E..A.
+#    log                     E..A.
+
+lpc_type=3
+lpc_passes=12
+min_partition_order=0
+max_partition_order=6
+prediction_order_method=5
+if [ ${CompressionLevel} -eq 0 ]; then
+    lpc_type=1
+    lpc_passes=0
+    max_partition_order=3
+    prediction_order_method=0
+fi
+if [ ${CompressionLevel} -eq 1 ]; then
+    lpc_type=1
+    lpc_passes=0
+    max_partition_order=3
+    prediction_order_method=1
+fi
+if [ ${CompressionLevel} -eq 2 ]; then
+    lpc_type=1
+    lpc_passes=0
+    max_partition_order=3
+    prediction_order_method=2
+fi
+if [ ${CompressionLevel} -eq 3 ]; then
+    lpc_type=3
+    lpc_passes=6
+    max_partition_order=4
+    prediction_order_method=0
+fi
+if [ ${CompressionLevel} -eq 4 ]; then
+    lpc_type=3
+    lpc_passes=8
+    max_partition_order=4
+    prediction_order_method=1
+fi
+if [ ${CompressionLevel} -eq 5 ]; then
+    lpc_type=3
+    lpc_passes=8
+    max_partition_order=5
+    prediction_order_method=2
+fi
+if [ ${CompressionLevel} -eq 6 ]; then
+    lpc_type=3
+    lpc_passes=8
+    max_partition_order=6
+    prediction_order_method=2
+fi
+if [ ${CompressionLevel} -eq 7 ]; then
+    lpc_type=3
+    lpc_passes=8
+    max_partition_order=6
+    prediction_order_method=5
+fi
+if [ ${CompressionLevel} -eq 8 ]; then
+    lpc_type=3
+    lpc_passes=12
+    max_partition_order=6
+    prediction_order_method=5
+fi
+
+if [ $debug -eq 0 ]; then
+
+${codec_TOOL} -y -i "${FullPathIN}" \
+ -lpc_type ${lpc_type} \
+ -lpc_passes ${lpc_passes} \
+ -min_partition_order ${min_partition_order} \
+ -max_partition_order ${max_partition_order} \
+ -prediction_order_method ${prediction_order_method} \
+ "${FullPathOUT}" \
+ 1>/dev/null 2>/dev/null
+
+errors=$?
+
+else
+
+${codec_TOOL} -y -i "${FullPathIN}" \
+ -lpc_type ${lpc_type} \
+ -lpc_passes ${lpc_passes} \
+ -min_partition_order ${min_partition_order} \
+ -max_partition_order ${max_partition_order} \
+ -prediction_order_method ${prediction_order_method} \
+ "${FullPathOUT}"
+
+errors=$?
+
+fi
+
+if [ ${errors} -ne 0 ]; then
+    rm -f "${FullPathOUT}"
+    exit ${E_CANT_ENCODE}
+fi
+
+exit ${NO_ERR}

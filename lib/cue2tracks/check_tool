@@ -1,0 +1,35 @@
+#!/bin/sh
+#
+#########################################
+#
+# Check for tools and print what found
+# Usage: check_tool <executable name> <package name>
+#
+#########################################
+
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=$PATH
+
+FILE=`realpath $0`
+LIB_DIR=`dirname ${FILE}`
+
+NO_ERR=0
+E_UNK=1
+E_TOOL_NOT_FOUND=2
+
+tool="$1"
+pkg="$2"
+
+
+${LIB_DIR}/print_message -n "\t${color_yellow}*${color_default} Checking for '${color_cyan}${tool}${color_default}'..."
+
+ctool=`which "${tool}" 2>/dev/null`
+if [ ! -n "${ctool}" ]; then
+	${LIB_DIR}/print_message "\t[${color_red}failed${color_default}]! Install '${pkg}'!\n"
+	exit ${E_TOOL_NOT_FOUND}
+else
+	${LIB_DIR}/print_message "\t[${color_green}ok${color_default}]"
+	echo "${ctool}"
+fi
+
+exit ${NO_ERR}

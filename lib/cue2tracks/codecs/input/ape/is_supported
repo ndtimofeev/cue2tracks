@@ -1,0 +1,20 @@
+#!/bin/sh
+#
+##########################
+#
+# Input decoder tools and functions for Monkey's Audio
+#
+##########################
+
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=${PATH}
+
+NO_ERR=0
+E_UNK=1
+E_NOT_SUPPORTED=2
+
+EXT=`echo $1 | sed -E 's:\.([aA][pP][eE])$::g'`
+if [ "${EXT}" != "$1" ]; then
+    exit ${NO_ERR}
+fi
+exit ${E_NOT_SUPPORTED}

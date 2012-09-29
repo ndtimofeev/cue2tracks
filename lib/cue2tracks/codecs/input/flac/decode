@@ -1,0 +1,42 @@
+#!/bin/sh
+#
+##########################
+#
+# Input decoder tools and functions for FLAC
+#
+# -- decode FLAC to WAV
+#
+# Usage: decode <input FLAC path> <output WAV path>
+# Return: 0 if OK, >0 if ERROR
+#
+##########################
+
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=${PATH}
+
+NO_ERR=0
+E_UNK=1
+E_CANT_DECODE=2
+
+# --== VARIABLES ==--
+
+if [ -z "${onlyTest}" ]; then
+    onlyTest=0
+fi
+
+codec_TOOL="flac"
+
+[ ${onlyTest} -ne 0 ] && return
+
+FullPathIN="$1"
+FullPathOUT="$2"
+
+${codec_TOOL} -d -f -o "${FullPathOUT}" "${FullPathIN}" 1>/dev/null 2>/dev/null
+errors=$?
+
+if [ ${errors} -ne 0 ]; then
+    rm -f "${FullPathOUT}"
+    exit ${E_CANT_DECODE}
+fi
+
+exit ${NO_ERR}

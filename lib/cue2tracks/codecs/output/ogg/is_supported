@@ -1,0 +1,22 @@
+#!/bin/sh
+
+##########################
+#
+# Input encoder tools and functions for OGG
+# Usage: is_supported <codec name>
+# Return: 0 is TRUE, >0 if ERROR
+#
+##########################
+
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=${PATH}
+
+NO_ERR=0
+E_UNK=1
+E_NOT_SUPPORTED=2
+
+CODEC=`echo $1 | sed -E 's:^([oO][gG][gG])$::g'`
+if [ "${CODEC}" != "$1" ]; then
+    exit ${NO_ERR}
+fi
+exit ${E_NOT_SUPPORTED}

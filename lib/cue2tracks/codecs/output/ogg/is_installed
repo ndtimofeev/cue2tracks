@@ -1,0 +1,30 @@
+#!/bin/sh
+#
+##########################
+#
+# Check if encoder is installed - OGG
+# Return: 0 if TRUE, >0 is ERROR
+#
+##########################
+
+PATH=${PATH}:/bin:/usr/bin:/usr/local/bin
+export PATH=${PATH}
+
+FILE=`realpath $0`              # lib/cue2tracks/codecs/output/ogg
+LIB_DIR=`dirname ${FILE}`       # lib/cue2tracks/codecs/output/ogg
+LIB_DIR=`dirname ${LIB_DIR}`    # lib/cue2tracks/codecs/output
+LIB_DIR=`dirname ${LIB_DIR}`    # lib/cue2tracks/codecs
+LIB_DIR=`dirname ${LIB_DIR}`    # lib/cue2tracks
+
+NO_ERR=0
+E_UNK=1
+E_CODEC_TOOL_NOT_FOUND=2
+
+codec_TOOL="oggenc"
+codec_PKG="vorbis-tools"
+
+exec_TOOL=`${LIB_DIR}/check_tool ${codec_TOOL} ${codec_PKG}`
+if [ -z "${exec_TOOL}" ]; then
+    exit ${E_CODEC_TOOL_NOT_FOUND}
+fi
+exit ${NO_ERR}
