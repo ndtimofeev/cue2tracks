@@ -1,0 +1,16 @@
+# Authors and other people #
+
+## Main developers ##
+  * Sergey Dryabzhinsky
+
+## Help, patches, kicks, etc. ##
+  * Vladimir Filippov (0.2.9.4)
+  * vtvitus (0.2.8)
+  * Seclorum (0.2.5)
+  * Denis A. Serikov (SerD@mexmat.net) (0.2.4)
+  * Dicson (deb packages)
+  * MusePack and TAK support by Alexander Kornilov (0.2.14)
+  * dmitry.a.kirilin (0.2.15)
+
+## Many thanks to ##
+  * Mendel Cooper and folks for Advanced Bash-Scripting Guide
