@@ -340,6 +340,7 @@ print_naming_scheme() {
 \t\t%P : Album performer\n\
 \t\t%D : Album date\n\
 \t\t%G : Album genre\n\
+\t\t%I : Album discid\n\
 \t\t%t : Track title\n\
 \t\t%p : Track performer\n\
 \t\t%g : Track genre\n\
@@ -1432,6 +1433,7 @@ get_out_file_name() {
 	temp_AP=${tags_ALBUM_PERFORMER//\//\\}
 	temp_AG=${tags_ALBUM_GENRE//\//\\}
 	temp_AD=${tags_ALBUM_DATE//\//\\}
+	temp_AI=${tags_ALBUM_DISCID//\//\\}
 	temp_TT=${tags_TRACK_TITLE//\//\\}
 	temp_TP=${tags_TRACK_PERFORMER//\//\\}
 	temp_TG=${tags_TRACK_GENRE//\//\\}
@@ -1441,6 +1443,7 @@ get_out_file_name() {
 	tstr=${tstr//\%G/${temp_AG}}
 	tstr=${tstr//\%P/${temp_AP}}
 	tstr=${tstr//\%D/${temp_AD}}
+	tstr=${tstr//\%I/${temp_AI}}
 	tstr=${tstr//\%t/${temp_TT}}
 	tstr=${tstr//\%p/${temp_TP}}
 	tstr=${tstr//\%g/${temp_TG}}
